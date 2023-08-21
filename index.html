@@ -14,6 +14,12 @@
     <h1>Todo app</h1>
     <input type="text" placeholder="Добавьте задачу" maxlength="80">
     <button onclick="addIssue()">Добавить</button>
+    <div class="control-panel">
+        <button onclick="highlight('even')">Выделить чётный</button>
+        <button onclick="highlight('odd')">Выделить нечётный</button>
+        <button onclick="deleteIssue(undefined, undefined, 1)">Удалить первый</button>
+        <button onclick="deleteIssue(undefined,undefined,-1)">Удалить последний</button>
+    </div>
     <ul>
     </ul>
 </div>

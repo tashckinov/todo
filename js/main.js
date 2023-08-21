@@ -4,10 +4,16 @@ let checkbox = document.querySelector('.custom-checkbox');
 let issues = JSON.parse(localStorage.getItem("issues")) || [];
 showIssues()
 
+function byField(fieldName) {
+    return (a, b) => a[fieldName] < b[fieldName] ? 1 : -1;
+}
+
 function showIssues() {
+    issues.sort(byField('completed'));
     for (let i = 0; i < issues.length; i++) {
         let issue = issues[i]
-        renderIssueItem(issue.text, issue.id, issue.completed)
+        let even = i % 2 === 0;
+        renderIssueItem(issue.text, issue.id, issue.completed, even);
     }
 }
 
@@ -28,11 +34,10 @@ function addIssue() {
     }
 }
 
-function renderIssueItem(issue, id, completed = false) {
+function renderIssueItem(issue, id, completed = false, even) {
     let li = document.createElement("li");
-    li.onchange = function () {
-        changeStatus(id)
-    }
+    li.className = even ? 'even' : 'odd';
+    li.id = id;
 
     // Создание checkbox-a
     let label = document.createElement("label");
@@ -51,12 +56,18 @@ function renderIssueItem(issue, id, completed = false) {
 
     // Создание текста пункта
     let liText = document.createElement("span");
-    liText.innerText = issue
+    liText.innerText = issue;
+    if (completed) liText.style.textDecoration = "line-through";
+    // При изменении статуса
+    li.onchange = function () {
+        changeStatus(liText, li)
+    }
+
 
     // Создание кнопки удаления
     const deleteButton = document.createElement('button');
     deleteButton.onclick = function () {
-        deleteIssue(id)
+        deleteIssue(id, li)
     }
     deleteButton.innerText = 'Удалить';
     deleteButton.className = 'delete';
@@ -69,15 +80,54 @@ function renderIssueItem(issue, id, completed = false) {
     list.insertBefore(li, list.firstChild);
 }
 
-function changeStatus(id) {
-    id--
-    issues[id].completed = !issues[id].completed;
+function changeStatus(liText, li) {
+    const id = parseInt(li.id)
+    const idToChange = getArrayId(issues, id)
+    issues[idToChange].completed = !issues[idToChange].completed;
+    if (issues[idToChange].completed) {
+        liText.style.textDecoration = "line-through";
+        list.append(li);
+    } else {
+        liText.style.textDecoration = "none";
+        list.prepend(li);
+    }
     localStorage.setItem('issues', JSON.stringify(issues));
 }
-// todo не удаляется локальный элемент
-function deleteIssue(id) {
-    const idToRemove = issues.findIndex(element => element.id === id);
+
+function deleteIssue(id = undefined, li = undefined, target = 0) {
+    console.log(target)
+    switch (target) {
+        case 0:
+            li.remove();
+            break;
+        case 1:
+            id = list.firstElementChild.id;
+            list.firstElementChild.remove();
+            break;
+        case -1:
+            id = list.lastElementChild.id;
+            list.lastElementChild.remove();
+            break;
+
+    }
+    const idToRemove = getArrayId(issues, id)
     issues.splice(idToRemove, 1);
-    console.log(issues)
     localStorage.setItem('issues', JSON.stringify(issues));
+}
+
+function getArrayId(array, id) {
+    return array.findIndex(element => element.id === id);
+}
+
+function highlight(even) {
+    const evenItems = document.getElementsByClassName(even)
+    for (item of evenItems) {
+        if (even === 'even') {
+            item.style.background = 'pink';
+
+        }
+        if (even === 'odd') {
+            item.style.background = 'lightblue';
+        }
+    }
 }
